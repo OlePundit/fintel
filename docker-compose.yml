@@ -1,0 +1,72 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-fintel}
+      POSTGRES_USER: ${POSTGRES_USER:-fintel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fintel}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    build: .
+    restart: unless-stopped
+    command: celery -A src.tasks.celery_app worker --loglevel=info --concurrency=4
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+  beat:
+    build: .
+    restart: unless-stopped
+    command: celery -A src.tasks.celery_app beat --loglevel=info --scheduler celery.beat:PersistentScheduler
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - beat_data:/app/beat
+
+  # One-off: run migrations + NLTK download
+  migrate:
+    build: .
+    command: >
+      sh -c "alembic upgrade head &&
+             python -c 'import nltk; nltk.download(\"punkt\", quiet=True)'"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["setup"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  beat_data:

@@ -1,0 +1,29 @@
+# Core
+celery[redis]==5.3.6
+redis==5.0.3
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.30
+alembic==1.13.1
+python-dotenv==1.0.1
+httpx==0.27.0
+feedparser==6.0.11
+praw==7.7.1
+
+# Analysis
+vaderSentiment==3.3.2
+nltk==3.8.1
+
+# Scraping
+playwright==1.44.0
+
+# Alerts
+python-telegram-bot==21.3
+# email via smtplib (stdlib) — no extra package needed
+# twilio==9.1.0  # uncomment when adding SMS
+
+# Utils
+tenacity==8.3.0
+schedule==1.2.2
+loguru==0.7.2
+pydantic==2.7.1
+pydantic-settings==2.3.0
