@@ -29,6 +29,7 @@ services:
 
   worker:
     build: .
+    user: "1000:1000"
     restart: unless-stopped
     command: celery -A src.tasks.celery_app worker --loglevel=info --concurrency=4
     env_file: .env
@@ -42,6 +43,7 @@ services:
 
   beat:
     build: .
+    user: "1000:1000"
     restart: unless-stopped
     command: celery -A src.tasks.celery_app beat --loglevel=info --scheduler celery.beat:PersistentScheduler
     env_file: .env
