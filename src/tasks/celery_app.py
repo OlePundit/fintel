@@ -49,5 +49,6 @@ app.conf.beat_schedule = {
     },
 }
 
-# Auto-discover tasks
-app.autodiscover_tasks(["src.tasks"])
+# autodiscover_tasks looks for a `tasks` submodule per package; our tasks
+# live in `pipeline.py`, so import it directly to register them.
+app.conf.imports = ("src.tasks.pipeline",)
